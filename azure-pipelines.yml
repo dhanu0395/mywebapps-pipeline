@@ -9,5 +9,37 @@ stages:
       - job: buildJob
         steps:
           - checkout: self
+          - task: Maven@4
+            inputs:
+              azureSubscription: 'DjAzureSPNConnection'
+              mavenPomFile: 'pom.xml'
+              goals: 'package'
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              javaHomeOption: 'JDKVersion'
+              mavenVersionOption: 'Default'
+              mavenAuthenticateFeed: false
+              effectivePomSkip: false
+              sonarQubeRunAnalysis: false
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(System.DefaultWorkingDirectory)/target'
+              ArtifactName: 'drop'
+              publishLocation: 'Container'
+
+  - stage: Docker
+    displayName: "Build & Push Docker Image"
+    dependsOn: Build
+    jobs:
+      - job: DockerBuild
+        steps:
+          - task: DockerCompose@1
+            inputs:
+              containerregistrytype: 'Container Registry'
+              dockerRegistryEndpoint: 'docker0395'
+              dockerComposeFile: '**/docker-compose.yml'
+              action: 'Build services'
+    
+
 
 
