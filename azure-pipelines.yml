@@ -42,6 +42,8 @@ stages:
               command: 'buildAndPush'
               Dockerfile: '**/Dockerfile'
               buildContext: '$(Pipeline.Workspace)/drop'
+              tags: |
+                latest
 
   - stage: Deploy
     displayName: "Deploy Container"
@@ -53,12 +55,7 @@ stages:
             echo "Pulling latest image..."
             docker pull dhanu0395/myweb-app:latest
             echo "Running container..."
-            docker-compose -p 6070:8080 -f docker-compose.yml up -d
-#            docker run -d -p 8080:8080 dhanu0395/myweb-app:latest
+            docker run -d -p 6070:8080 dhanu0395/myweb-app:latest
           displayName: "Deploy Container"
 
-          
-    
-
-
-
+          #           docker-compose -p 6070:8080 -f docker-compose.yml up -d
