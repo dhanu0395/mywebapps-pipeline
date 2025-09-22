@@ -3,11 +3,65 @@ pool:
   name: LinuxPool
 
 stages:
-  - stage: buildStage
+  - stage: Build
     displayName: "Build Java Application"
     jobs:
       - job: buildJob
         steps:
           - checkout: self
+          - task: Maven@4
+            inputs:
+              azureSubscription: 'DjAzureSPNConnection'
+              mavenPomFile: 'pom.xml'
+              goals: 'package'
+              publishJUnitResults: true
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              javaHomeOption: 'JDKVersion'
+              mavenVersionOption: 'Default'
+              mavenAuthenticateFeed: false
+              effectivePomSkip: false
+              sonarQubeRunAnalysis: false
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(System.DefaultWorkingDirectory)/target'
+              ArtifactName: 'drop'
+              publishLocation: 'Container'
+
+  - stage: Docker
+    displayName: "Build & Push Docker Image"
+    dependsOn: Build
+    jobs:
+      - job: DockerBuild
+        steps:
+          - task: DockerCompose@1
+            displayName: "Build Docker Image"
+            inputs:
+              containerregistrytype: 'Container Registry'
+              dockerRegistryEndpoint: 'docker0395'
+              dockerComposeFile: '**/docker-compose.yml'
+              action: 'Build services'
+          - task: DockerCompose@1
+            inputs:
+              containerregistrytype: 'Container Registry'
+              dockerRegistryEndpoint: 'docker0395'
+              dockerComposeFile: '**/docker-compose.yml'
+              action: 'Push services'
+
+  - stage: Deploy
+    displayName: "Deploy Container"
+    dependsOn: Docker
+    jobs:
+    - job: RunContainer
+      steps:
+        - script: |
+            echo "Pulling latest image..."
+            docker pull dhanu0395/myweb-app:latest
+            echo "Running container..."
+            docker run -d -p 8080:8080 dhanu0395/myweb-app:latest
+          displayName: "Deploy Container"
+
+          
+    
+
 
 
