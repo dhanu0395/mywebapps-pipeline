@@ -1,0 +1,13 @@
+trigger: none
+pool: 
+  name: LinuxPool
+
+stages:
+  - stage: buildStage
+    displayName: "Build Java Application"
+    jobs:
+      - job: buildJob
+        steps:
+          - checkout: self
+
+

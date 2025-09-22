@@ -1,0 +1,8 @@
+version: '2.3'
+services:
+  amazon-app:
+    image: dhanu0395/myweb-app:latest
+    build: .
+    ports:
+      - "8080:8080"
+
