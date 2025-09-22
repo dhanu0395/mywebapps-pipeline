@@ -33,21 +33,15 @@ stages:
     jobs:
       - job: DockerBuild
         steps:
-          - task: DockerCompose@1
-            displayName: "Build Docker Image"
+          - download: current
+            artifact: drop
+          - task: Docker@2
             inputs:
-              containerregistrytype: 'Container Registry'
-              dockerRegistryEndpoint: 'docker0395'
-              dockerComposeFile: '**/docker-compose.yml'
-              action: 'Build services'
-              projectName: 'mywebapps'
-          - task: DockerCompose@1
-            inputs:
-              containerregistrytype: 'Container Registry'
-              dockerRegistryEndpoint: 'docker0395'
-              dockerComposeFile: '**/docker-compose.yml'
-              action: 'Push services'
-              projectName: 'mywebapps'
+              containerRegistry: 'docker0395'
+              repository: 'dhanu0395/myweb-app'
+              command: 'buildAndPush'
+              Dockerfile: '**/Dockerfile'
+              buildContext: '$(Pipeline.Workspace)/drop'
 
   - stage: Deploy
     displayName: "Deploy Container"
@@ -59,7 +53,8 @@ stages:
             echo "Pulling latest image..."
             docker pull dhanu0395/myweb-app:latest
             echo "Running container..."
-            docker run -d -p 8080:8080 dhanu0395/myweb-app:latest
+            docker-compose -p 6070:8080 -f docker-compose.yml up -d
+#            docker run -d -p 8080:8080 dhanu0395/myweb-app:latest
           displayName: "Deploy Container"
 
           
